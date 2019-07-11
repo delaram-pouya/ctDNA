@@ -80,48 +80,44 @@ sapply(1:length(ErrorMeans), function(i) ErrorMeans[[i]]*NumberOfPositions[[i]])
 
 
 
-FitNormal <- lapply(ListOfSplitednonZeroErrorsLog, function(x) fitdistr(x, "normal") )
-FitNormal <- lapply(FitNormal, function(x) x$estimate )
-FitNormalMean <- lapply(FitNormal, function(x) x[['mean']])
-FitNormalSD <- lapply(FitNormal, function(x) x[['sd']])
 
 
-SAMPLE_SIZE = 1000
-GeneratedErrorLog <- lapply(1:length(FitNormal),function(i) rnorm( SAMPLE_SIZE , FitNormalMean[[i]], FitNormalSD[[i]]))
-GeneratedError <- lapply(1:length(FitNormal),function(i) 10^rnorm( SAMPLE_SIZE , FitNormalMean[[i]], FitNormalSD[[i]]))
+##########################################################
+## visualize error, based on each chromosome
+
+tissueHomoNoMut <- readRDS('error/Data/tisPileupFinal_NoMutFilter.rds')
+bloodPileupHomo <- readRDS('error/Data/bloodfinalpileup.rds')
+cfdnaHomoNoMut <- readRDS('error/Data/cfDNAsPileupFinal_NoMutFilt.rds')
 
 
-Files <- list(FitNormal, FitNormalMean, FitNormalSD, GeneratedErrorLog, GeneratedError)
-sapply(1:length(Files), 
-       function(i) names(Files[[i]]) <<- names(ListOfSplitedErrors))
-
-lapply(Files, function(x)lapply(x, head))
-
-
-
-
-### Simulation Visualization
-
-sapply(1:length(FitNormal), function(i) hist(x = rnorm( SAMPLE_SIZE , FitNormalMean[[i]], FitNormalSD[[i]]),
-                                             main =names(FitNormal)[i], 
-                                             xlab=names(FitNormal)[i]) )
-
-sapply(1:length(FitNormal), function(i) hist(x = 10^(rnorm(SAMPLE_SIZE ,FitNormalMean[[i]], FitNormalSD[[i]])),
-                                             main =names(FitNormal)[i], 
-                                             xlab=names(FitNormal)[i] ) )  
+## adding a total plot(summation of all distributions)
+cfdnaHomoNoMut <- lapply(cfdnaHomoNoMut, function(x){
+  tmp = subset(x, seqnames != 'chrY') 
+  tmp$seqnames <- 'total'
+  return(rbind(x, tmp))
+})
 
 
-ErrorSimulations <- sapply(1:length(FitNormal), function(i)  {
-       data.frame( Sample=names(FitNormal)[i], 
-                   Error=10^(rnorm(SAMPLE_SIZE ,FitNormalMean[[i]], FitNormalSD[[i]])) )
-  }, simplify = F)
-ErrorSimulations <- do.call(rbind, ErrorSimulations)
-
-ggplot(data=ErrorSimulations, aes(x=Error)) +geom_density(alpha=0.3,aes(fill=Sample)) +theme_bw()+ scale_fill_discrete()
 
 
-pdf('Error/Plots/EvalSimulate.pdf')
+### make a wide range of colors to plot multiple classes
+library(RColorBrewer)
+n <- 50
+qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+pie(rep(1,n), col=sample(col_vector, n))
+
+
+
+## same for error_blood_chr.pdf & error_cfDNA_chr.pdf
+
+pdf('error/Plots/error_tissue_chr_2.pdf')
+sapply(1:length(cfdnaHomoNoMut), 
+       function(i) ggplot(cfdnaHomoNoMut[[i]], aes(x=ALT.freq+1e-7,color=seqnames))+geom_density()+theme_bw()+
+         scale_x_log10()+ggtitle(paste0(names(cfdnaHomoNoMut),' heterozygous and somatics removed' ))+
+         xlab('log scaled error(=alt-freq)')+scale_color_manual(values=col_vector)
+       ,simplify = F)
+
 dev.off()
-
 
 

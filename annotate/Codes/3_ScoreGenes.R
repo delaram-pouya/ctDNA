@@ -1,10 +1,10 @@
-## In this script, we will 
+## In this script, we will score the genes  
 
-source('Codes/1_Functions.R')
+source('annotate/Codes/1_Functions.R')
 Initialize()
 
 ## takes the input directory and vcf file name as an input 
-input_DIR = '~/Desktop/'
+input_DIR = 'annotate/Data/'
 vcf_name = 'p2_cfDNA1_snv_lev3.vcf'
 
 ## makes a directory to write the outputs in it
@@ -28,10 +28,6 @@ isGeneSetIncluded <- data.frame(lapply(listOfDataSetGenes, function(x) ifelse( g
 
 
 ScoreTable <- cbind(geneSetDf, isGeneSetIncluded)
-ScoreTable$Score <- rowSums(subset(ScoreTable, select=-geneSet))
-ScoreTable <- ScoreTable[order(ScoreTable$Score, decreasing = T),]
-head(ScoreTable)
-write.csv(ScoreTable, paste0(output_prefix, '_ScoreTable.csv'))
 
 
 ### Visualize
@@ -39,10 +35,23 @@ pdf(paste0(output_prefix,'_highScoreGenes_barplots.pdf'))
 if( isEmpty(geneSetDf) ){
     grid.text("No annotated gene in the vcf file ",x = 0.5, y=0.5 ,gp=gpar(fontsize=12),just = "center")
     grid.newpage()}
-ggplot(subset(ScoreTable,Score>mean(Score)), aes(x=geneSet, y=Freq))+ggtitle('Highly mutated genes')+
+
+ScoreTable$geneSet <- factor(ScoreTable$geneSet, levels = ScoreTable$geneSet[order(ScoreTable$Freq)])
+ggplot(subset(ScoreTable,Freq>quantile(Freq, 0.75)), aes(x=geneSet, y=Freq))+ggtitle('Highly mutated genes')+
     geom_bar(stat="identity",color="black", fill='#E69F00',alpha=0.6)+coord_flip()+theme_bw()
-ggplot(subset(ScoreTable,Score>mean(Score)), aes(x=geneSet, y=Score))+ggtitle('High-score genes')+
+
+
+ScoreTable$normalized_Freq <- getNormalizeFreq(ScoreTable$Freq)
+ScoreTable$Score <- rowSums(subset(ScoreTable, select=-c(geneSet, Freq)))
+ScoreTable <- ScoreTable[order(ScoreTable$Score, decreasing = T),]
+head(ScoreTable)
+write.csv(ScoreTable, paste0(output_prefix, '_ScoreTable.csv'))
+
+  
+ScoreTable$geneSet <- factor(ScoreTable$geneSet, levels = ScoreTable$geneSet[order(ScoreTable$Score)])
+ggplot(subset(ScoreTable,Score>quantile(Score, 0.75)), aes(x=geneSet, y=Score))+ggtitle('High-score genes')+
     geom_bar(stat="identity",color="black", fill='cyan3',alpha=0.6)+coord_flip()+theme_bw()
+
 dev.off()
 
        

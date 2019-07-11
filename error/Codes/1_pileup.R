@@ -127,7 +127,8 @@ freq3 <- mclapply(freq3, function(x){
     find.VAF(i,x)});x},mc.cores=detectCores()-2)
 
 names(freq3) <- names(freq.tmp)
-saveRDS(freq3, 'simulator/Tumor_origin_read_probability/pileUpVAFall.rds')
+#saveRDS(freq3, 'simulator/Tumor_origin_read_probability/pileUpVAFall.rds')
+freq3 <- readRDS('simulator/Tumor_origin_read_probability/pileUpVAFall.rds')
 saveRDS(vcf, 'simulator/Tumor_origin_read_probability/allVCFs.rds')
 
 

@@ -33,8 +33,8 @@ Initialize <- function(){
 
 ImportDataSets <- function(){
     
-    SourceFiles <- list.files('Sources/CancerResources', full.names = T, pattern = '*.csv')
-    SourceNames <- gsub('.csv','',gsub('Sources/CancerResources/', '', SourceFiles))
+    SourceFiles <- list.files('annotate/Sources/CancerResources', full.names = T, pattern = '*.csv')
+    SourceNames <- gsub('.csv','',gsub('annotate/Sources/CancerResources/', '', SourceFiles))
     SourceDataSets <- lapply(SourceFiles, read.csv, header= T)
     names(SourceDataSets) <- SourceNames
     
@@ -68,6 +68,12 @@ getCleanedAnnotationFile <- function(hg38Annotations){
     hg38Annotations <- subset(hg38Annotations, select=-c(V2,V9,V6,V7,V8))
     colnames(hg38Annotations)[-ncol(hg38Annotations)] <- c('chr','region','start','end')
     return(hg38Annotations)
+}
+
+
+
+getNormalizeFreq <- function(x){
+  ifelse(x>quantile(x, 0.75), 3, ifelse(x>mean(x), 2, ifelse(x>quantile(x, 0.25), 1, 0))  ) 
 }
 
 

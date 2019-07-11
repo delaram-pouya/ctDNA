@@ -2,7 +2,7 @@
 ## first, we'll find the homozygous positions based on the blood samples(positions with F1>0.8) 
 ## the, we'll remove the heterozygous positions from all samples and 
 ## remove somatic mutations(based on the VCF files) from the tissue and cfDNA samples 
-## calculate error rate for each position as E= F2+F3+F4 (hetero and somatic positions have been removed)
+## calculate error rate for each position as E=F2+F3+F4 (hetero and somatic positions have been removed)
 ## make the pair-wise error table
 
 ## input: pileup files 
@@ -31,7 +31,7 @@ bloodPileup <- mclapply(bloodPileup, Add.depth , mc.cores = detectCores()-2)
 bloodPileup2 <- mclapply(bloodPileup, Add.max , mc.cores = detectCores()-2) # to remove hetero: Add.max.blood()
 names(bloodPileup2) <- c('p1_blood','p2_blood')
 homo <- mclapply(bloodPileup2, function(x){df=subset(x,F1>0.8);paste0(x$seqnames,sep='_',x$pos)})
-homo <- readRDS('Error/Data/homozygous_pos.rds')
+homo <- readRDS('error/Data/homozygous_pos.rds')
 
 
 
@@ -58,7 +58,7 @@ index_homo <- sapply(1:length(tissue),
                      simplify=F)
 
 tissueHomo <- sapply( 1:length(tissue), function(i) tissue[[i]][ index_homo[[i]] ,],simplify = F )
-saveRDS(tissueHomo, 'Error/Data/tisPileupHomoFilt.rds')
+saveRDS(tissueHomo, 'error/Data/tisPileupHomoFilt.rds')
 
 
 
@@ -74,7 +74,7 @@ tissueHomoNoMut <- mclapply(tissueHomoNoMut, MakepileupFreq.eff, mc.cores = dete
 tissueHomoNoMut <- mclapply(tissueHomoNoMut, Add.depth , mc.cores = detectCores()-2)
 tissueHomoNoMut <- mclapply(tissueHomoNoMut, Add.max , mc.cores = detectCores()-2) 
 names(tissueHomoNoMut) <- c('p1_tissue','p2_tissue') 
-saveRDS(tissueHomoNoMut, 'Error/Data/tisPileupFinal.rds')
+saveRDS(tissueHomoNoMut, 'error/Data/tisPileupFinal.rds')
 
 
 
