@@ -83,39 +83,6 @@ ks.test(rnorm(SAMPLE_SIZE,mu_list['tissue'],sigma_list['tissue']),
 
 
 
-#######################################
-
-
-
-############## large peak 
-
-large_index = findLargePeakIndex(mixEM_list)
-
-mu_large_peak <- sapply(1:length(mixEM_list), function(i) mixEM_list[[i]]$mu[ large_index[i]  ]  )
-sigma_large_peak <-  sapply(1:length(mixEM_list), function(i) mixEM_list[[i]]$sigma[ large_index[i]  ]  )
-pmix_large_peak <-  sapply(1:length(mixEM_list), function(i) mixEM_list[[i]]$lambda[ large_index[i]  ]  )
-
-
-
-
-############## small peak
-
-small_index = findSmallPeakIndex(mixEM_list)
-
-mu_small_peak <- sapply(1:length(mixEM_list), function(i) mixEM_list[[i]]$mu[ small_index[i]  ]  )
-sigma_small_peak <-  sapply(1:length(mixEM_list), function(i) mixEM_list[[i]]$sigma[ small_index[i]  ]  )
-pmix_small_peak <-  sapply(1:length(mixEM_list), function(i) mixEM_list[[i]]$lambda[ small_index[i]  ]  )
-
-
-names(mu_large_peak)= Names; names(sigma_large_peak) = Names; names(pmix_large_peak) = Names
-names(mu_small_peak)= Names; names(sigma_small_peak) = Names; names(pmix_small_peak) = Names
-
-
-
-
-n = 100000
-
-
 
 
 

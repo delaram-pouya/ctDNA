@@ -183,3 +183,17 @@ AddAttributes_singleDF <- function(x){
   x <- Add.max(x)
   return(x)}
 
+
+
+findLargePeakIndex <- function(mixEM_list){
+  minMu <- lapply(mixEM_list, function(x) min(x$mu[1], x$mu[2]))
+  sapply(1:length(minMu), function(i)ifelse(mixEM_list[[i]]$mu[1] ==minMu[[i]], 1 , 2) )
+}
+
+
+findSmallPeakIndex <- function(mixEM_list){
+  maxMu <- lapply(mixEM_list, function(x) max(x$mu[1], x$mu[2]))
+  sapply(1:length(maxMu), function(i)ifelse(mixEM_list[[i]]$mu[1] ==maxMu[[i]], 1 , 2) )
+}
+
+

@@ -49,8 +49,8 @@ ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count..),color=
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 P_error <- ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count.., fill='empirical'),color='black', alpha=0.4)+
-  geom_density(data=data_large_peak,aes(x=estimated_error, y = ..count.., colour='large-peak'), linetype='dashed',size=0.95)+ stat_density(geom="line")+
-  geom_density(data=data_small_peak,aes(x=estimated_error, y = ..count.., colour='small-peak'),linetype='dashed', size=0.95)+ stat_density(geom="line")+
+  geom_density(data=data_large_peak,aes(x=estimated_error, y = ..count.., colour='large-peak'), linetype='solid',size=0.95)+ stat_density(geom="line")+
+  geom_density(data=data_small_peak,aes(x=estimated_error, y = ..count.., colour='small-peak'),linetype='solid', size=0.95)+ stat_density(geom="line")+
   theme_classic()+
   scale_colour_manual(name='Estimated Error' ,values = c('#E69F00', '#0072B2'))+
   scale_fill_manual(name='Empirical Error', labels='',values = '#999999')+
@@ -63,19 +63,17 @@ pdf('P_error_mix_cfDNA.pdf', height=7, width=8)
 P_error
 dev.off()
 
+
+
+
+
 #############################################
-
-
-
-
 
 ## Tumor origin distribution
 
 pileupVAF <- readRDS('simulator/Tumor_origin_read_probability/pileUpVAFall.rds')
 vcf <- readRDS('simulator/Tumor_origin_read_probability/allVCFs.rds')
 
-lapply(pileupVAF, head)
-lapply(vcf, head)
 
 ## merging data
 merged_VAFs <- c(pileupVAF[['p1_cfDNA1']]$VAF,
@@ -87,25 +85,59 @@ merged_VAFs <- c(pileupVAF[['p1_cfDNA1']]$VAF,
 merged_VAFs <- data.frame(merged_VAFs[merged_VAFs>0])
 colnames(merged_VAFs) <- 'VAF'
 
-ggplot(data=merged_VAFs, aes(VAF)) + 
-  geom_density(col="blue", fill="#56B4E9", alpha = .2) + 
-  labs(title="tumor-origin reads distribution") +
-  labs(x=" %confirming alterations", y="frequency") +theme_bw()
 
-
+#### generate samples from all distributions
 fitParameters <- readRDS('simulator/Tumor_origin_read_probability/fitParameters_lev2_corrected.rds')
+SAMPLE_SIZE = nrow(merged_VAFs)
+
+beta <- data.frame(rbeta(SAMPLE_SIZE, fitParameters$beta$estimate[1],fitParameters$beta$estimate[2]))
+normal <- data.frame(rnorm(SAMPLE_SIZE, fitParameters$norm$estimate[1],fitParameters$norm$estimate[2]))
+gamma <- data.frame(rgamma(SAMPLE_SIZE, fitParameters$gamma$estimate[1],fitParameters$gamma$estimate[2]))
+lnorm <- data.frame(rlnorm(SAMPLE_SIZE, fitParameters$lnorm$estimate[1],fitParameters$lnorm$estimate[2]))
+weibull <- data.frame(rweibull(SAMPLE_SIZE, fitParameters$weibull$estimate[1],fitParameters$weibull$estimate[2]))
+
+colnames(beta) <- 'beta'
+colnames(normal) <- 'normal'
+colnames(gamma) <- 'gamma'
+colnames(lnorm) <- 'lnorm'
+colnames(weibull) <- 'weibull'
 
 
 
-# create some data to work with
-x = rnorm(1000);
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-# overlay histogram, empirical density and normal density
-p0 = qplot(x, geom = 'blank') +   
-  geom_line(aes(y = ..density.., colour = 'Empirical'), stat = 'density') +  
-  stat_function(fun = dnorm, aes(colour = 'Normal')) +                       
-  geom_histogram(aes(y = ..density..), alpha = 0.4) +                        
-  scale_colour_manual(name = 'Density', values = c('red', 'blue')) + 
-  theme(legend.position = c(0.85, 0.85))
-p0
+pdf('P_tissueProb_cfDNA.pdf')
+ggplot(merged_VAFs, aes(x=VAF))+geom_density(aes(fill='empirical'),color='yellow',size=0.1, alpha=0.3)+
+  
+  geom_density(data=normal,aes(x=normal, colour='normal'), linetype='solid',size=1)+ stat_density(geom="line")+
+  geom_density(data=gamma,aes(x=gamma, colour='gamma'),linetype='solid', size=1)+ stat_density(geom="line")+
+  geom_density(data=lnorm,aes(x=lnorm, colour='lnorm'),linetype='solid', size=1)+ stat_density(geom="line")+
+  geom_density(data=beta,aes(x=beta, colour='beta'),linetype='solid', size=1)+ stat_density(geom="line")+
+  #geom_density(data=weibull,aes(x=weibull, colour='weibull'),linetype='solid', size=1)+ stat_density(geom="line")+
+  
+  theme_classic()+
+  scale_colour_manual(name='Estimated P_tis' ,values = c( "#CC79A7", "#009E73" ,"#0072B2", "#D55E00"))+
+  scale_fill_manual(name='Empirical P_tis', labels='',values = 'gold1')+
+  guides(colour = guide_legend(order = 1),
+         fill = guide_legend(order = 2, override.aes = list(alpha = 0.5,colour='#E69F00',linetype='solid',size=0.7)))+
+  theme(legend.position = c(0.77, 0.5))+xlab('cfDNA P_tis')+xlim(c(0,1))
+dev.off()
+
+
+################################
+
+
+
+
+depth <- readRDS('simulator/winow_depth/all_chr_converage.rds')
+listOfDistr <- readRDS('simulator/winow_depth/all_chr_estimated_parameters.rds')
+poisson_parameters <- listOfDistr[[1]]$estimate
+nbinomial_parameters <- listOfDistr[[2]]$estimate
+
+
+
+
+
+
+
 

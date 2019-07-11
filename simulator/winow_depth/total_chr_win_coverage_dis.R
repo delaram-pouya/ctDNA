@@ -50,6 +50,7 @@ lapply(chr_coverageList, head)
 read_freq_all <- lapply(input_files, function(x) x$read_freq)
 names(read_freq_all) <- NULL
 chr_total <- unlist(read_freq_all)
+saveRDS(chr_total, 'simulator/winow_depth/all_chr_converage.rds')
 summary(chr_total)
 
 
@@ -86,7 +87,7 @@ cdfcomp(listOfDistr)
 dev.off()
 
 
-
+saveRDS(listOfDistr, 'simulator/winow_depth/all_chr_estimated_parameters.rds')
 poisson_parameters <- listOfDistr[[1]]$estimate
 nbinomial_parameters <- listOfDistr[[2]]$estimate
 
