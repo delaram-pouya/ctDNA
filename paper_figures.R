@@ -128,14 +128,43 @@ dev.off()
 
 
 
-
 depth <- readRDS('simulator/winow_depth/all_chr_converage.rds')
-listOfDistr <- readRDS('simulator/winow_depth/all_chr_estimated_parameters.rds')
-poisson_parameters <- listOfDistr[[1]]$estimate
-nbinomial_parameters <- listOfDistr[[2]]$estimate
+poisson_parameters <- fitdist(data = depth, distr = 'pois', discrete = T)
+nbinomial_parameters <- fitdist(data = depth, distr = 'nbinom', discrete = T)
+
+n = length(depth)
+pois <- data.frame(rpois(n, poisson_parameters$estimate[1]))
+nbinom <- data.frame(rnbinom(n, size=nbinomial_parameters$estimate[1], mu=nbinomial_parameters$estimate[2]))
+colnames(pois) <- 'pois'
+colnames(nbinom) <- 'nbinom'
+
+summary(depth)
+summary(pois)
+summary(nbinom)
+
+ggplot(data.frame(depth), aes(x=depth))+geom_histogram(color='black', fill='pink', alpha=0.8,bins = 20)+
+  xlim(c(1,200))+theme_classic()
+
+ggplot(data.frame(depth), aes(x=depth)) +
+  geom_histogram(color='black', fill='pink', alpha=0.8,breaks=c(seq(0, 200, by=20), max(depth)), position = "identity") +
+  coord_cartesian(xlim=c(0,220))
 
 
+ggplot(data.frame(depth), aes(x=depth))+
+  geom_histogram(color='darkblue', fill='lightblue', alpha=0.6,breaks=c(seq(0, 200, by=20)))+
+  scale_x_continuous(limits=c(0, 200), breaks=c(seq(0, 200, by=20)), labels=c(seq(0,190, by=20), "200<"))+
+  theme_classic()+xlab('window-depth')
 
+pdf('P_coverage_cfDNA.pdf')
+ggplot(data.frame(depth), aes(x=depth))+
+  geom_density(aes(fill='empirical'),color='gray40', alpha=0.7)+
+  geom_density(data=nbinom, aes(nbinom,fill='negative binomial'), color='black', alpha=0.6,size=0.4)+
+  theme_classic()+xlab('window-coverage')+
+  scale_fill_manual(name='',values = c('lightslategray', 'red2'))+
+  guides(fill = guide_legend(override.aes = list(alpha = 0.5)))+
+  theme(legend.position = c(0.77, 0.5))+
+  scale_x_continuous(limits=c(0, 100), breaks=c(seq(0, 100, by=50)), labels=c(seq(0,50, by=50), "100<"))
+dev.off()
 
 
 

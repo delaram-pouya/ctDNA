@@ -73,7 +73,7 @@ getCleanedAnnotationFile <- function(hg38Annotations){
 
 
 getNormalizeFreq <- function(x){
-  ifelse(x>quantile(x, 0.75), 3, ifelse(x>mean(x), 2, ifelse(x>quantile(x, 0.25), 1, 0))  ) 
+  ifelse(x>quantile(x, 0.75), 3, ifelse(x>median(x), 2, ifelse(x>quantile(x, 0.25), 1, 0))  ) 
 }
 
 
