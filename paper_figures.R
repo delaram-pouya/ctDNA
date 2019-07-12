@@ -39,29 +39,34 @@ colnames(data_large_peak) <- 'estimated_error'
 colnames(data_small_peak) <- 'estimated_error'
 
 
-ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count..),color='white',fill='blue', alpha=0.2)+
-  geom_density(data=data_large_peak,aes(x=estimated_error, y = ..count..), color='dark blue',linetype='dashed')+ stat_density(geom="line")+
-  geom_density(data=data_small_peak,aes(x=estimated_error, y = ..count..), color='red',linetype='dashed')+ stat_density(geom="line")+
+ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count..),color='white')+
+  geom_density(data=data_large_peak,aes(x=estimated_error, y = ..count..), color='dark blue',linetype='solid')+ stat_density(geom="line")+
+  geom_density(data=data_small_peak,aes(x=estimated_error, y = ..count..), color='red',linetype='solid')+ stat_density(geom="line")+
   theme_bw()
 
 
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-P_error <- ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count.., fill='empirical'),color='black', alpha=0.4)+
-  geom_density(data=data_large_peak,aes(x=estimated_error, y = ..count.., colour='large-peak'), linetype='solid',size=0.95)+ stat_density(geom="line")+
-  geom_density(data=data_small_peak,aes(x=estimated_error, y = ..count.., colour='small-peak'),linetype='solid', size=0.95)+ stat_density(geom="line")+
-  theme_classic()+
-  scale_colour_manual(name='Estimated Error' ,values = c('#E69F00', '#0072B2'))+
-  scale_fill_manual(name='Empirical Error', labels='',values = '#999999')+
-  guides(colour = guide_legend(order = 1),
-         fill = guide_legend(order = 2, override.aes = list(alpha = 0.5,colour='black',linetype='solid',size=0.7)))+
-  theme(legend.position = c(0.8, 0.5))+xlab('cfDNA Error (log scaled)')
-
 
 pdf('P_error_mix_cfDNA.pdf', height=7, width=8)
-P_error
+
+ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count..),color='black',linetype='solid',show.legend = F,size=1)+ #fill='empirical'
+  geom_density(data=data_large_peak,aes(x=estimated_error, y = ..count.., fill='large-peak',color='large-peak'),alpha=0.6,size=0.7,show.legend = F)+ stat_density(geom="line")+
+  geom_density(data=data_small_peak,aes(x=estimated_error, y = ..count.., fill='small-peak', color='small-peak'),alpha=0.6,size=0.7,show.legend = F)+ stat_density(geom="line")+
+  theme_classic()+
+  scale_colour_manual(name='Estimated Error' ,values = c('#F8766D','#00BFC4'))+
+  scale_fill_manual(name='',values = c('#F8766D','#00BFC4'))+
+  #guides(colour = guide_legend(order = 1),
+  #       fill = guide_legend(order = 2, override.aes = list(alpha = 0.5,colour='black',linetype='solid',size=0.7)))+
+  theme(legend.position = c(0.8, 0.5),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=23)) + 
+  xlab('cfDNA Error (log scaled)')+ylab('Count')
+
 dev.off()
+
+
 
 
 
@@ -103,28 +108,57 @@ colnames(lnorm) <- 'lnorm'
 colnames(weibull) <- 'weibull'
 
 
+#### color selection
 
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "green4", "#F0E442", "#0072B2", "#D55E00", "deeppink3")
+
+col_man <- c('purple', 'cyan3','green3' , 'deeppink2',
+             'goldenrod1','darkorange1', 'brown1',
+             'darkorchid2','hotpink1', 'maroon2',
+             'coral1', 'seagreen2','royalblue1', 
+             'yellow2', 'tan1', 'violetred2')
+
+pallette <- c( 'orange1','deepskyblue3','maroon', 'turquoise3') #,'orchid3'
+
+f <- function(pal) brewer.pal(brewer.pal.info[pal, "maxcolors"], pal)
+library(RColorBrewer)
+display.brewer.all()
+set2 <- f('Set2')
+set1 <- f('Set1')
+
+#######
+
 
 pdf('P_tissueProb_cfDNA.pdf')
-ggplot(merged_VAFs, aes(x=VAF))+geom_density(aes(fill='empirical'),color='yellow',size=0.1, alpha=0.3)+
+
+ggplot(merged_VAFs, aes(x=VAF))+geom_density(color='black',size=0.1, alpha=0.3)+ #aes(fill='empirical')
   
   geom_density(data=normal,aes(x=normal, colour='normal'), linetype='solid',size=1)+ stat_density(geom="line")+
+  geom_density(data=beta,aes(x=beta, colour='beta'),linetype='solid', size=1)+ stat_density(geom="line")+
   geom_density(data=gamma,aes(x=gamma, colour='gamma'),linetype='solid', size=1)+ stat_density(geom="line")+
   geom_density(data=lnorm,aes(x=lnorm, colour='lnorm'),linetype='solid', size=1)+ stat_density(geom="line")+
-  geom_density(data=beta,aes(x=beta, colour='beta'),linetype='solid', size=1)+ stat_density(geom="line")+
   #geom_density(data=weibull,aes(x=weibull, colour='weibull'),linetype='solid', size=1)+ stat_density(geom="line")+
   
-  theme_classic()+
-  scale_colour_manual(name='Estimated P_tis' ,values = c( "#CC79A7", "#009E73" ,"#0072B2", "#D55E00"))+
-  scale_fill_manual(name='Empirical P_tis', labels='',values = 'gold1')+
+  theme_classic()+ 
+  scale_colour_manual(name='' ,values =pallette)+ #Estimated P_tis 
+  #scale_fill_manual(name='Empirical P_tis', labels='',values = 'gold1')+
   guides(colour = guide_legend(order = 1),
          fill = guide_legend(order = 2, override.aes = list(alpha = 0.5,colour='#E69F00',linetype='solid',size=0.7)))+
-  theme(legend.position = c(0.77, 0.5))+xlab('cfDNA P_tis')+xlim(c(0,1))
+  theme(legend.position = c(0.77, 0.5), 
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=20), 
+        legend.text=element_text(size=25))+
+  
+  xlab('cfDNA P_tis')+xlim(c(0,1))+ylab('Density')
 dev.off()
 
 
-################################
+
+
+
+
+
+########################### Coverage distribution
 
 
 
@@ -142,6 +176,8 @@ summary(depth)
 summary(pois)
 summary(nbinom)
 
+
+
 ggplot(data.frame(depth), aes(x=depth))+geom_histogram(color='black', fill='pink', alpha=0.8,bins = 20)+
   xlim(c(1,200))+theme_classic()
 
@@ -155,15 +191,24 @@ ggplot(data.frame(depth), aes(x=depth))+
   scale_x_continuous(limits=c(0, 200), breaks=c(seq(0, 200, by=20)), labels=c(seq(0,190, by=20), "200<"))+
   theme_classic()+xlab('window-depth')
 
+
+
 pdf('P_coverage_cfDNA.pdf')
+
 ggplot(data.frame(depth), aes(x=depth))+
-  geom_density(aes(fill='empirical'),color='gray40', alpha=0.7)+
-  geom_density(data=nbinom, aes(nbinom,fill='negative binomial'), color='black', alpha=0.6,size=0.4)+
-  theme_classic()+xlab('window-coverage')+
-  scale_fill_manual(name='',values = c('lightslategray', 'red2'))+
-  guides(fill = guide_legend(override.aes = list(alpha = 0.5)))+
+  geom_density(aes(fill='empirical'), color='black', alpha=0.6)+ #
+  geom_density(data=nbinom, aes(nbinom,fill='nbinomial'), color='black', alpha=0.6,size=0.4)+
+  theme_classic()+
+  scale_fill_manual(name='',values = c('lightskyblue','royalblue3'))+
+  guides(fill = guide_legend(override.aes = list(alpha = 0.6)))+
   theme(legend.position = c(0.77, 0.5))+
-  scale_x_continuous(limits=c(0, 100), breaks=c(seq(0, 100, by=50)), labels=c(seq(0,50, by=50), "100<"))
+  scale_x_continuous(limits=c(0, 100), breaks=c(seq(0, 100, by=50)), labels=c(seq(0,50, by=50), "100<"))+
+  theme(legend.position = c(0.77, 0.5), 
+        axis.text=element_text(size=15),
+        axis.title=element_text(size=20), 
+        legend.text=element_text(size=25))+
+    xlab('Coverage')+ylab('Density')
+
 dev.off()
 
 
