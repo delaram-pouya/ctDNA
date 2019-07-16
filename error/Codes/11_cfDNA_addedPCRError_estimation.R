@@ -1,5 +1,6 @@
-### subtracing the small peak from blood and tissue from the respective peak in the 
-### cfDNA sample  
+### subtracing the small peak from blood and tissue from  
+### the respective peak in the cfDNA sample  
+
 set.seed(123)
 
 source('error/Codes/4_findError_functions.R')

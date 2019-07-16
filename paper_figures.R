@@ -1,8 +1,19 @@
 ## plotting the figures needed for paper
 
-
 source('error/Codes/4_findError_functions.R')
 Initialize()
+
+
+## load inpu data
+
+ListOfSplitednonZeroErrorsMergedLog <- readRDS('error/Data/ListOfSplitednonZeroErrorsMergedLog.rsd')
+ListOfSplitedErrorsMerged <- readRDS('error/Data/ListOfSplitedErrorsMerged.rds')
+normalmixEM_blood <- readRDS('error/Data/normalmixEM_blood.rds')
+normalmixEM_tissue <- readRDS('error/Data/normalmixEM_tissue.rds')
+normalmixEM_cfDNA <- readRDS('error/Data/normalmixEM_cfDNA.rds')
+Names <- c('blood', 'tissue', 'cfDNA')
+mixEM_list <- list(normalmixEM_blood, normalmixEM_tissue ,normalmixEM_cfDNA)
+
 
 ############# mixture guassian cfDNA error 
 ####### large peak 
@@ -25,6 +36,10 @@ pmix_small_peak <-  sapply(1:length(mixEM_list), function(i) mixEM_list[[i]]$lam
 
 names(mu_large_peak)= Names; names(sigma_large_peak) = Names; names(pmix_large_peak) = Names
 names(mu_small_peak)= Names; names(sigma_small_peak) = Names; names(pmix_small_peak) = Names
+
+
+
+
 
 ###########
 
@@ -49,7 +64,7 @@ ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count..),color=
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 
-pdf('P_error_mix_cfDNA.pdf', height=7, width=8)
+pdf('P_error_mix_cfDNA_v2.pdf', height=7, width=8)
 
 ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count..),color='black',linetype='solid',show.legend = F,size=1)+ #fill='empirical'
   geom_density(data=data_large_peak,aes(x=estimated_error, y = ..count.., fill='large-peak',color='large-peak'),alpha=0.6,size=0.7,show.legend = F)+ stat_density(geom="line")+
@@ -62,7 +77,7 @@ ggplot(real_data, aes(x=empirical_error))+geom_density(aes(y = ..count..),color=
   theme(legend.position = c(0.8, 0.5),
         axis.text=element_text(size=12),
         axis.title=element_text(size=23)) + 
-  xlab('cfDNA Error (log scaled)')+ylab('Count')
+  xlab('cfDNA Error (log10)')+ylab('Frequency')
 
 dev.off()
 
@@ -118,7 +133,7 @@ col_man <- c('purple', 'cyan3','green3' , 'deeppink2',
              'coral1', 'seagreen2','royalblue1', 
              'yellow2', 'tan1', 'violetred2')
 
-pallette <- c( 'orange1','deepskyblue3','maroon', 'turquoise3') #,'orchid3'
+pallette <- c('orange1','black','red2','deepskyblue3' ,'palegreen4') #,'orchid3' , marooon,  'deepskyblue3' 'turquoise3'
 
 f <- function(pal) brewer.pal(brewer.pal.info[pal, "maxcolors"], pal)
 library(RColorBrewer)
@@ -128,10 +143,10 @@ set1 <- f('Set1')
 
 #######
 
+## add legend for empirical > cfDNA data
+pdf('P_tissueProb_cfDNA_v2.pdf')
 
-pdf('P_tissueProb_cfDNA.pdf')
-
-ggplot(merged_VAFs, aes(x=VAF))+geom_density(color='black',size=0.1, alpha=0.3)+ #aes(fill='empirical')
+ggplot(merged_VAFs, aes(x=VAF))+geom_density(aes(colour='cfDNA'),size=0.9)+stat_density(geom="line")+ #aes(fill='empirical')
   
   geom_density(data=normal,aes(x=normal, colour='normal'), linetype='solid',size=1)+ stat_density(geom="line")+
   geom_density(data=beta,aes(x=beta, colour='beta'),linetype='solid', size=1)+ stat_density(geom="line")+
@@ -149,7 +164,7 @@ ggplot(merged_VAFs, aes(x=VAF))+geom_density(color='black',size=0.1, alpha=0.3)+
         axis.title=element_text(size=20), 
         legend.text=element_text(size=25))+
   
-  xlab('cfDNA P_tis')+xlim(c(0,1))+ylab('Density')
+  xlab('P_tumor')+xlim(c(0,1))+ylab('Density')
 dev.off()
 
 
@@ -191,6 +206,10 @@ ggplot(data.frame(depth), aes(x=depth))+
   scale_x_continuous(limits=c(0, 200), breaks=c(seq(0, 200, by=20)), labels=c(seq(0,190, by=20), "200<"))+
   theme_classic()+xlab('window-depth')
 
+ggplot(x, aes(x=value))+
+  geom_histogram(aes(color=variable), fill='lightblue', alpha=0.6,breaks=c(seq(0, 200, by=20)))+
+  scale_x_continuous(limits=c(0, 200), breaks=c(seq(0, 200, by=20)), labels=c(seq(0,190, by=20), "200<"))+
+  theme_classic()+xlab('window-depth')
 
 
 pdf('P_coverage_cfDNA.pdf')
@@ -210,8 +229,5 @@ ggplot(data.frame(depth), aes(x=depth))+
     xlab('Coverage')+ylab('Density')
 
 dev.off()
-
-
-
 
 
