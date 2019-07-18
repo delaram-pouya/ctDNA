@@ -1,13 +1,31 @@
+#!/usr/bin/env Rscript
+
 ## This script, gets a vcf file as an input and annotates it gencode-v29(hg38)
 ## reference genome, then we'll integrate the input data with some datasets to
 ## find the most important genes
 ## NOTE: MAKE SURE THE COORDINATIONS OF VCF FILE IS BASED ON HG38 REFERENCE GENOME
 
 ## input: vcf file
-## output: annotated csv file with gene symboles
+## output: 
+# 1. annotated csv file with gene symboles
+# 2. score table csv file
+# 3. pdf file (analysis results + pathway enrichment)
+
+# run as:
+# Rscript bioanalysis.R annotate/Data/p2_cfDNA1_snv_lev3.vcf annotate/Sources/hg38GeneAnnotations.txt annotate/Sources/CancerResources/Cancer_Gene_Census.csv annotate/Sources/CancerResources/DGIdb_interactions.csv annotate/Sources/CancerResources/PanCan_cancertype.csv annotate/Sources/CancerResources/PanCan_drivers.csv annotate/Sources/CancerResources/oncoKB_allCuratedGenes.txt
+
+# args[1]  = vcf file
+# args[2]  = gene-code annotations (hg38GeneAnnotations.txt)
+# args[3]  = Cancer_Gene_Census.csv
+# args[4]  = DGIdb_interactions.csv
+# args[5]  = PanCan_cancertype.csv
+# args[5]  = PanCan_drivers.csv
+# args[5]  = oncoKB_allCuratedGenes.txt
 
 
 ########################## Functions
+args = commandArgs(trailingOnly=TRUE)
+
 
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -34,6 +52,7 @@ Initialize <- function(){
 
 isEmpty <- function(table){ ifelse(nrow(table) == 0, TRUE, FALSE)}
 
+
 cleanTranscriptId <- function(selectedCol){
   selectedCol_split <- str_split(selectedCol$V1, ' ')
   transcriptID <- lapply(selectedCol_split, function(x) x[length(x)])
@@ -42,7 +61,7 @@ cleanTranscriptId <- function(selectedCol){
 
 
 getCleanedAnnotationFile <- function(hg38Annotations){
-  hg38Annotations = fread('annotate/Sources/hg38GeneAnnotations.txt', header = F)
+  hg38Annotations = fread(args[2], header = F)
   hg38Annotations$transcriptId <- cleanTranscriptId(data.table(hg38Annotations$V9))
   hg38Annotations <- subset(hg38Annotations, select=-c(V2,V9,V6,V7,V8))
   colnames(hg38Annotations)[-ncol(hg38Annotations)] <- c('chr','region','start','end')
@@ -64,18 +83,17 @@ col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_co
 ########################## Importing inputs 
 
 ## takes the vcf file as an input 
-VCF_INPUT = 'annotate/Data/p2_cfDNA1_snv_lev3.vcf'
+VCF_INPUT = args[1]
 
 ## import gencode-v29(hg38) annotation file
 AnnotationHg38 <- getCleanedAnnotationFile()
 
 #### importing datasets needed for scoring and annotation
-CGC <- read.csv('annotate/Sources/CancerResources/Cancer_Gene_Census.csv')
-DGIdb <- read.csv('annotate/Sources/CancerResources/DGIdb_interactions.csv')
-PanCan_Sig <- read.csv('annotate/Sources/CancerResources/PanCan_cancertype.csv')
-PanCan_Driver <- read.csv('annotate/Sources/CancerResources/PanCan_drivers.csv')
-oncoKB <- read.delim('annotate/Sources/CancerResources/oncoKB_allCuratedGenes.txt')
-
+CGC <- read.csv(args[3])
+DGIdb <- read.csv(args[4])
+PanCan_Sig <- read.csv(args[5])
+PanCan_Driver <- read.csv(args[6])
+oncoKB <- read.delim(args[7])
 
 listOfDataSets <- list(CGC, DGIdb, PanCan_Driver, oncoKB)
 names(listOfDataSets) <- c('CGC', 'DGIdb', 'PanCan_Driver', 'oncoKB')
@@ -117,7 +135,6 @@ FinalAnnotatedVcf <- merge(FinalAnnotatedVcf,entrezgene, by.x='hgnc_symbol', by.
 head(FinalAnnotatedVcf)
 
 write.csv(FinalAnnotatedVcf, file ='Annaotated_VCF.csv', row.names = F)
-FinalAnnotatedVcf <- read.csv('annotate/Data/p2_cfDNA1_snv_lev3/p2_cfDNA1_snv_lev3_annaotatedVCF.csv')
 
 ########################## Score genes
 
@@ -208,7 +225,10 @@ entrez_genes <- as.character(FinalAnnotatedVcf$entrezgene)
 entrez_genes <- unique(entrez_genes[!is.na(entrez_genes)])
 
 ##  pathway Enrichment
-enrichPath <- enrichPathway(gene=entrez_genes, readable=T, pvalueCutoff = 0.01)
+enrichPath = enrichPathway(gene=entrez_genes, readable=T, pvalueCutoff = 0.01)
+
+
+
 
 
 pdf('Bio_Analysis.pdf')
